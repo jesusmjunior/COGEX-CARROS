@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-import numpy as np
 from datetime import datetime
 
 # ================== CONFIGURAÇÃO DO DASHBOARD ==================
@@ -17,8 +16,15 @@ st.caption(f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S'
 # ================== FUNÇÃO PARA CARREGAR DADOS ==================
 @st.cache_data(ttl=3600)
 def carregar_dados():
-    file_path = 'Controle_de_Carros_COGX-1 (1).xlsx'
-    sheets = pd.read_excel(file_path, sheet_name=None)
+    sheet_id = "1uKsmcO4AO2Q1VzzsYHIeAT_5QNrA7hFcX5zCWwgG_FI"
+    base_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet="
+    
+    sheets_urls = {
+        "Dia a dia": f"{base_url}Dia%20a%20dia",
+        "VIAGEM": f"{base_url}VIAGEM",
+        "Sinistro": f"{base_url}SINISTRO"
+    }
+    sheets = {sheet: pd.read_csv(url) for sheet, url in sheets_urls.items()}
     return sheets
 
 sheets = carregar_dados()
