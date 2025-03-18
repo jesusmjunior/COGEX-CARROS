@@ -13,22 +13,6 @@ st.set_page_config(
 
 st.title("🚗 Dashboard Controle Trimestral de Carros")
 st.caption(f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-import streamlit as st
-import pandas as pd
-import altair as alt
-from datetime import datetime
-from io import BytesIO
-
-# ================== CONFIGURAÇÃO DO DASHBOARD ==================
-st.set_page_config(
-    page_title="📊 Dashboard Controle de Carros",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-st.title("🚗 Dashboard Controle Trimestral de Carros")
-st.caption(f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-
 # ================== INSERE ROBOZINHO DISCRETO ==================
 st.markdown("""
     <style>
