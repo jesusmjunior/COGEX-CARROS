@@ -112,13 +112,6 @@ def resumo_dados(dataframe):
             Cada motorista representado por um carrinho e bonequinho CGX!<br>
         </div>
     """, unsafe_allow_html=True)
-
-elif aba_selecionada == 'Sinistro':
-    st.header("📄 Sinistros")
-    resumo_dados(df)
-    st.dataframe(df, use_container_width=True)
-    botao_download(df, "sinistros.csv")
-    exportar_pdf_html(df)
 else:
     df = sheets[aba_selecionada]
     st.write("### 📄 Registros")
