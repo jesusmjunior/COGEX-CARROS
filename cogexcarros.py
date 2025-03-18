@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 from datetime import datetime
-from fpdf import FPDF
+from io import BytesIO
 
 # ================== CONFIGURAÇÃO DO DASHBOARD ==================
 st.set_page_config(
@@ -62,34 +62,32 @@ def resumo_dados(dataframe):
     with col3:
         st.metric("Última atualização", datetime.now().strftime("%d/%m/%Y"))
 
-# ================== FUNÇÃO PARA EXPORTAR PDF ==================
-def exportar_pdf(dataframe):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, txt="COGEX CARROS - Corregedoria do Foro Extrajudicial", ln=True, align='C')
-    pdf.ln(10)
-    pdf.set_font("Arial", size=12)
-
-    # Adicionar dados
-    for index, row in dataframe.iterrows():
-        linha = " | ".join([str(item) for item in row])
-        pdf.multi_cell(0, 10, txt=linha)
-        if index >= 15:
-            pdf.multi_cell(0, 10, txt="...demais registros omitidos para visualização...")
-            break
-
-    # Rodapé
-    pdf.set_y(-30)
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 10, txt="Endereço: Rua da Corregedoria, Nº 123, Cidade, Estado", ln=True, align='C')
-
-    pdf_output = pdf.output(dest='S').encode('latin1')
+# ================== FUNÇÃO PARA EXPORTAR PDF VIA HTML ==================
+def exportar_pdf_html(dataframe):
+    html_content = f"""
+    <html>
+    <head><style>
+    body {{ font-family: Arial; margin: 30px; }}
+    h1 {{ text-align: center; }}
+    footer {{ position: fixed; bottom: 0; text-align: center; width: 100%; font-size: 12px; }}
+    table {{ border-collapse: collapse; width: 100%; }}
+    th, td {{ border: 1px solid #ddd; padding: 8px; font-size: 12px; }}
+    </style></head>
+    <body>
+        <h1>COGEX CARROS - Corregedoria do Foro Extrajudicial</h1>
+        <table>
+            <tr>{''.join(f'<th>{col}</th>' for col in dataframe.columns)}</tr>
+            {''.join(f'<tr>{''.join(f'<td>{cell}</td>' for cell in row)}</tr>' for row in dataframe.head(15).values)}
+        </table>
+        <footer>Endereço: Rua da Corregedoria, Nº 123, Cidade, Estado</footer>
+    </body>
+    </html>
+    """
     st.sidebar.download_button(
         label="📄 Exportar PDF Trimestral",
-        data=pdf_output,
-        file_name="Relatorio_Trim_COGEX_CARROS.pdf",
-        mime='application/pdf'
+        data=html_content,
+        file_name="Relatorio_Trim_COGEX_CARROS.html",
+        mime='text/html'
     )
 
 # ================== LÓGICA POR ABA ==================
@@ -118,7 +116,6 @@ if aba_selecionada == 'VIAGEM':
     if viagem_ferias:
         df_filtrado = df_filtrado[df_filtrado['VIAGEM/FÉRIAS'].isin(viagem_ferias)]
 
-    # Quilometragem semanal (FIM - INICIO)
     df_filtrado['QUILOMETRAGEM SEMANAL'] = (df_filtrado['FIM(DATA)'].dt.day - df_filtrado['INICIO(DATA)'].dt.day).fillna(0)
 
     resumo_dados(df_filtrado)
@@ -126,7 +123,6 @@ if aba_selecionada == 'VIAGEM':
     st.write("### 📄 Registros Filtrados")
     st.dataframe(df_filtrado, use_container_width=True)
 
-    # Gráfico de barras - Quilometragem Semanal
     bar_data = df_filtrado.groupby('NOME DO MOTORISTA')['QUILOMETRAGEM SEMANAL'].sum().reset_index()
     bar_chart = alt.Chart(bar_data).mark_bar().encode(
         x=alt.X('NOME DO MOTORISTA:N', sort='-y'),
@@ -135,19 +131,16 @@ if aba_selecionada == 'VIAGEM':
     ).properties(title="Quilometragem por Motorista (Semanal)", height=400)
     st.altair_chart(bar_chart, use_container_width=True)
 
-    # Tabela com links para fotos
-    st.write("### 📸 Fotos do Painel do Carro")
     if 'LINK DA FOTO' in df_filtrado.columns:
         df_filtrado['FOTO PAINEL'] = df_filtrado['LINK DA FOTO'].apply(lambda x: f"[Ver Foto]({x})" if pd.notnull(x) else '-')
         st.write(df_filtrado[['NOME DO MOTORISTA', 'TIPO DO VEÍCULO', 'INICIO(DATA)', 'FIM(DATA)', 'QUILOMETRAGEM SEMANAL', 'FOTO PAINEL']])
 
     botao_download(df_filtrado, "controle_viagem.csv")
-    exportar_pdf(df_filtrado)
+    exportar_pdf_html(df_filtrado)
 
 elif aba_selecionada == 'Dia a dia':
     st.header("📅 Controle Dia a Dia")
 
-    # Filtro de data
     st.sidebar.subheader("📅 Filtro de Data")
     df['DATA DO REGISTRO'] = pd.to_datetime(df['DATA DO REGISTRO'], errors='coerce')
     data_inicio = st.sidebar.date_input("Data Início:", df['DATA DO REGISTRO'].min())
@@ -178,14 +171,14 @@ elif aba_selecionada == 'Dia a dia':
         st.altair_chart(bar_chart, use_container_width=True)
 
     botao_download(df_filtrado, "controle_dia_a_dia.csv")
-    exportar_pdf(df_filtrado)
+    exportar_pdf_html(df_filtrado)
 
 else:
     st.header("📄 Sinistros")
     resumo_dados(df)
     st.dataframe(df, use_container_width=True)
     botao_download(df, "sinistros.csv")
-    exportar_pdf(df)
+    exportar_pdf_html(df)
 
 # ================== MENSAGEM FINAL ==================
 st.success("✅ Dashboard carregado com sucesso!")
