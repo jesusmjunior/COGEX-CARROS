@@ -58,10 +58,6 @@ st.sidebar.header("📂 Selecione uma Aba")
 tabs = list(sheets.keys())
 aba_selecionada = st.sidebar.radio("Selecione uma aba:", tabs)
 df = sheets[aba_selecionada]
-
-st.sidebar.write("🔎 **Colunas carregadas:**")
-st.sidebar.write(list(df.columns))
-
 # ================== FUNÇÃO AUXILIAR ==================
 def botao_download(dataframe, filename):
     csv = dataframe.to_csv(index=False, encoding='utf-8-sig')
