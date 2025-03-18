@@ -77,46 +77,6 @@ def resumo_dados(dataframe):
     with col3:
         st.metric("Última atualização", datetime.now().strftime("%d/%m/%Y"))
 
-    st.header("🏆 Ranking dos Motoristas")
-
-    # ============ QUILOMETRAGEM RANK ============
-    dia_df = sheets['Dia a dia']
-    dia_df['DATA DO REGISTRO'] = pd.to_datetime(dia_df['DATA DO REGISTRO'], errors='coerce')
-    df_quilometragem = dia_df.sort_values('DATA DO REGISTRO').groupby('NOME DO MOTORISTA')['QUILOMETRAGEM'].agg(['first', 'last']).reset_index()
-    df_quilometragem['KM_RODADOS'] = df_quilometragem['last'] - df_quilometragem['first']
-
-    top_km = df_quilometragem.sort_values(by='KM_RODADOS', ascending=False).head(5)
-
-    st.subheader("🚗 Top 5 Quem Mais Rodou")
-    st.dataframe(top_km[['NOME DO MOTORISTA', 'KM_RODADOS']])
-
-    # ============ LAVAGEM RANK ============
-    df_lavagem = dia_df[dia_df['OBS'].str.contains('lavagem', case=False, na=False)].groupby('NOME DO MOTORISTA').size().reset_index(name='TOTAL_LAVAGENS')
-    top_lavagem = df_lavagem.sort_values(by='TOTAL_LAVAGENS', ascending=False).head(5)
-
-    st.subheader("🧽 Top 5 Quem Mais Lavou")
-    st.dataframe(top_lavagem)
-
-    # ============ VIAGEM RANK ============
-    viagem_df = sheets['VIAGEM']
-    df_viagem = viagem_df.groupby('NOME DO MOTORISTA').size().reset_index(name='TOTAL_VIAGENS')
-    top_viagem = df_viagem.sort_values(by='TOTAL_VIAGENS', ascending=False).head(5)
-
-    st.subheader("✈️ Top 5 Quem Mais Viajou")
-    st.dataframe(top_viagem)
-
-    st.markdown("""
-        <hr>
-        <div style='text-align:center;'>
-            🚗💨🥇 Parabéns aos motoristas destaque!<br>
-            Cada motorista representado por um carrinho e bonequinho CGX!<br>
-        </div>
-    """, unsafe_allow_html=True)
-else:
-    df = sheets[aba_selecionada]
-    st.write("### 📄 Registros")
-    st.dataframe(df.drop(columns=[col for col in df.columns if 'UNNAMED' in col]), use_container_width=True)
-
 # ================== FUNÇÃO PARA EXPORTAR PDF VIA HTML ==================
 def exportar_pdf_html(dataframe):
     html_content = f"""
