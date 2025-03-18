@@ -223,6 +223,53 @@ else:
     st.dataframe(df, use_container_width=True)
     botao_download(df, "sinistros.csv")
     exportar_pdf_html(df)
-
+# ================== ROBOZINHO VERTICAL COM LINK ==================
+st.markdown("""
+    <style>
+        .robo-lateral {
+            position: fixed;
+            right: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: descer 8s linear infinite alternate;
+            z-index: 1000;
+        }
+        @keyframes descer {
+            0% { top: 5%; }
+            100% { top: 80%; }
+        }
+        .robo-lateral img {
+            width: 60px;
+            transition: transform 0.3s ease;
+        }
+        .robo-lateral img:hover {
+            transform: scale(1.2);
+        }
+        .faixa-texto {
+            background-color: #800000;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>
+    <div class='robo-lateral'>
+        <a href='https://www.tjma.jus.br/site/extrajudicial' target='_blank'>
+            <img src='https://cdn-icons-png.flaticon.com/512/4712/4712109.png'/>
+        </a>
+        <div class='faixa-texto'>I.A. COGEX 2025</div>
+    </div>
+""", unsafe_allow_html=True)
+# ================== RODAPÉ ==================
+st.markdown("""
+    <hr>
+    <p style='text-align: center; color: #800000;'><strong>Corregedoria Geral do Foro Extrajudicial</strong><br>
+    Rua Cumã, nº 300, 1º andar, Edifício Manhattan Center III, Jardim Renascença 2<br>
+    São Luís - Maranhão CEP 65.075-700</p>
+""", unsafe_allow_html=True)
 # ================== MENSAGEM FINAL ==================
 st.success("✅ Dashboard carregado com sucesso!")
