@@ -13,31 +13,6 @@ st.set_page_config(
 
 st.title("🚗 Dashboard Controle Trimestral de Carros")
 st.caption(f"Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-# ================== INSERE ROBOZINHO DISCRETO ==================
-st.markdown("""
-    <style>
-    .robozinho {
-        position: fixed;
-        bottom: 50px;
-        right: 20px;
-        z-index: 100;
-        text-align: center;
-        animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-        0% { transform: translatey(0px); }
-        50% { transform: translatey(-10px); }
-        100% { transform: translatey(0px); }
-    }
-    </style>
-    <div class="robozinho">
-        <a href="https://www.appsheet.com/start/8169fb9c-03d6-4aad-9b6e-ce630d97d6e7" target="_blank">
-            <img src="https://i.imgur.com/EYkDgBd.png" alt="Robozinho" style="width:70px;">
-            <div style="font-size:10px; color:gray;">by CGX.JJ 2025</div>
-        </a>
-    </div>
-""", unsafe_allow_html=True)
-
 # ================== FUNÇÃO PARA CARREGAR DADOS ==================
 @st.cache_data(ttl=3600)
 def carregar_dados():
