@@ -24,7 +24,11 @@ def carregar_dados():
         "VIAGEM": f"{base_url}VIAGEM",
         "Sinistro": f"{base_url}SINISTRO"
     }
-    sheets = {sheet: pd.read_csv(url) for sheet, url in sheets_urls.items()}
+    sheets = {}
+    for sheet, url in sheets_urls.items():
+        df = pd.read_csv(url)
+        df.columns = df.columns.str.strip().str.upper()  # Normalização das colunas
+        sheets[sheet] = df
     return sheets
 
 sheets = carregar_dados()
@@ -34,6 +38,9 @@ st.sidebar.header("📂 Selecione uma Aba")
 tabs = list(sheets.keys())
 aba_selecionada = st.sidebar.radio("Selecione uma aba:", tabs)
 df = sheets[aba_selecionada]
+
+st.sidebar.write("🔎 **Colunas carregadas:**")
+st.sidebar.write(list(df.columns))
 
 # ================== FUNÇÃO AUXILIAR ==================
 def botao_download(dataframe, filename):
@@ -61,20 +68,20 @@ if aba_selecionada == 'VIAGEM':
     df['FIM(DATA)'] = pd.to_datetime(df['FIM(DATA)'], errors='coerce')
 
     # Filtros
-    motoristas = st.sidebar.multiselect("Nome do Motorista:", df['Nome do Motorista'].dropna().unique())
-    tipo_veiculo = st.sidebar.multiselect("Tipo do Veículo:", df['Tipo do Veículo'].dropna().unique())
+    motoristas = st.sidebar.multiselect("Nome do Motorista:", df['NOME DO MOTORISTA'].dropna().unique())
+    tipo_veiculo = st.sidebar.multiselect("Tipo do Veículo:", df['TIPO DO VEÍCULO'].dropna().unique())
     viagem_ferias = st.sidebar.multiselect("Viagem/Férias:", df['VIAGEM/FÉRIAS'].dropna().unique())
 
     df_filtrado = df.copy()
     if motoristas:
-        df_filtrado = df_filtrado[df_filtrado['Nome do Motorista'].isin(motoristas)]
+        df_filtrado = df_filtrado[df_filtrado['NOME DO MOTORISTA'].isin(motoristas)]
     if tipo_veiculo:
-        df_filtrado = df_filtrado[df_filtrado['Tipo do Veículo'].isin(tipo_veiculo)]
+        df_filtrado = df_filtrado[df_filtrado['TIPO DO VEÍCULO'].isin(tipo_veiculo)]
     if viagem_ferias:
         df_filtrado = df_filtrado[df_filtrado['VIAGEM/FÉRIAS'].isin(viagem_ferias)]
 
     # Quilometragem semanal (FIM - INICIO)
-    df_filtrado['Quilometragem Semanal'] = (df_filtrado['FIM(DATA)'].dt.day - df_filtrado['INICIO(DATA)'].dt.day).fillna(0)
+    df_filtrado['QUILOMETRAGEM SEMANAL'] = (df_filtrado['FIM(DATA)'].dt.day - df_filtrado['INICIO(DATA)'].dt.day).fillna(0)
 
     resumo_dados(df_filtrado)
 
@@ -82,45 +89,45 @@ if aba_selecionada == 'VIAGEM':
     st.dataframe(df_filtrado, use_container_width=True)
 
     # Gráfico de barras - Quilometragem Semanal
-    bar_data = df_filtrado.groupby('Nome do Motorista')['Quilometragem Semanal'].sum().reset_index()
+    bar_data = df_filtrado.groupby('NOME DO MOTORISTA')['QUILOMETRAGEM SEMANAL'].sum().reset_index()
     bar_chart = alt.Chart(bar_data).mark_bar().encode(
-        x=alt.X('Nome do Motorista:N', sort='-y'),
-        y=alt.Y('Quilometragem Semanal:Q'),
-        tooltip=['Nome do Motorista', 'Quilometragem Semanal']
+        x=alt.X('NOME DO MOTORISTA:N', sort='-y'),
+        y=alt.Y('QUILOMETRAGEM SEMANAL:Q'),
+        tooltip=['NOME DO MOTORISTA', 'QUILOMETRAGEM SEMANAL']
     ).properties(title="Quilometragem por Motorista (Semanal)", height=400)
     st.altair_chart(bar_chart, use_container_width=True)
 
     # Tabela com links para fotos
     st.write("### 📸 Fotos do Painel do Carro")
-    if 'Link da Foto' in df_filtrado.columns:
-        df_filtrado['Foto Painel'] = df_filtrado['Link da Foto'].apply(lambda x: f"[Ver Foto]({x})" if pd.notnull(x) else '-')
-        st.write(df_filtrado[['Nome do Motorista', 'Tipo do Veículo', 'INICIO(DATA)', 'FIM(DATA)', 'Quilometragem Semanal', 'Foto Painel']])
+    if 'LINK DA FOTO' in df_filtrado.columns:
+        df_filtrado['FOTO PAINEL'] = df_filtrado['LINK DA FOTO'].apply(lambda x: f"[Ver Foto]({x})" if pd.notnull(x) else '-')
+        st.write(df_filtrado[['NOME DO MOTORISTA', 'TIPO DO VEÍCULO', 'INICIO(DATA)', 'FIM(DATA)', 'QUILOMETRAGEM SEMANAL', 'FOTO PAINEL']])
 
     botao_download(df_filtrado, "controle_viagem.csv")
 
 elif aba_selecionada == 'Dia a dia':
     st.header("📅 Controle Dia a Dia")
 
-    motoristas = st.sidebar.multiselect("Nome do Motorista:", df['Nome do Motorista'].dropna().unique())
-    tipo_veiculo = st.sidebar.multiselect("Tipo do Veículo:", df['Tipo do Veículo'].dropna().unique())
+    motoristas = st.sidebar.multiselect("Nome do Motorista:", df['NOME DO MOTORISTA'].dropna().unique())
+    tipo_veiculo = st.sidebar.multiselect("Tipo do Veículo:", df['TIPO DO VEÍCULO'].dropna().unique())
     df_filtrado = df.copy()
 
     if motoristas:
-        df_filtrado = df_filtrado[df_filtrado['Nome do Motorista'].isin(motoristas)]
+        df_filtrado = df_filtrado[df_filtrado['NOME DO MOTORISTA'].isin(motoristas)]
     if tipo_veiculo:
-        df_filtrado = df_filtrado[df_filtrado['Tipo do Veículo'].isin(tipo_veiculo)]
+        df_filtrado = df_filtrado[df_filtrado['TIPO DO VEÍCULO'].isin(tipo_veiculo)]
 
     resumo_dados(df_filtrado)
     st.write("### 📄 Registros Filtrados")
     st.dataframe(df_filtrado, use_container_width=True)
 
     # Gráfico de quilometragem
-    if 'Quilometragem' in df_filtrado.columns:
-        bar_data = df_filtrado.groupby('Nome do Motorista')['Quilometragem'].sum().reset_index()
+    if 'QUILOMETRAGEM' in df_filtrado.columns:
+        bar_data = df_filtrado.groupby('NOME DO MOTORISTA')['QUILOMETRAGEM'].sum().reset_index()
         bar_chart = alt.Chart(bar_data).mark_bar().encode(
-            x=alt.X('Nome do Motorista:N', sort='-y'),
-            y=alt.Y('Quilometragem:Q'),
-            tooltip=['Nome do Motorista', 'Quilometragem']
+            x=alt.X('NOME DO MOTORISTA:N', sort='-y'),
+            y=alt.Y('QUILOMETRAGEM:Q'),
+            tooltip=['NOME DO MOTORISTA', 'QUILOMETRAGEM']
         ).properties(title="Quilometragem Total por Motorista", height=400)
         st.altair_chart(bar_chart, use_container_width=True)
 
