@@ -77,7 +77,6 @@ def resumo_dados(dataframe):
     with col3:
         st.metric("Última atualização", datetime.now().strftime("%d/%m/%Y"))
 
-elif aba_selecionada == 'Ranking Motoristas':
     st.header("🏆 Ranking dos Motoristas")
 
     # ============ QUILOMETRAGEM RANK ============
